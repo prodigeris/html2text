@@ -1,12 +1,13 @@
 # html2text
 
-[![Documentation](https://godoc.org/github.com/jaytaylor/html2text?status.svg)](https://godoc.org/github.com/jaytaylor/html2text)
-[![Build Status](https://travis-ci.org/jaytaylor/html2text.svg?branch=master)](https://travis-ci.org/jaytaylor/html2text)
-[![Report Card](https://goreportcard.com/badge/github.com/jaytaylor/html2text)](https://goreportcard.com/report/github.com/jaytaylor/html2text)
+[![Documentation](https://godoc.org/github.com/prodigeris/html2text?status.svg)](https://godoc.org/github.com/prodigeris/html2text)
+[![Report Card](https://goreportcard.com/badge/github.com/prodigeris/html2text)](https://goreportcard.com/report/github.com/prodigeris/html2text)
 
 ### Converts HTML into text of the markdown-flavored variety
 
 ## Introduction
+
+This is a fork of the original [jaytaylor.com/html2text](https://github.com/jaytaylor/html2text) project, which had become outdated. This fork maintains the same functionality while ensuring compatibility with modern Go versions and dependencies.
 
 Ensure your emails are readable by all!
 
@@ -16,12 +17,12 @@ html2text is a simple golang package for rendering HTML into plaintext.
 
 There are still lots of improvements to be had, but FWIW this has worked fine for my [basic] HTML-2-text needs.
 
-It requires go 1.x or newer ;)
+It requires Go 1.23.0 or newer.
 
 ## Download the package
 
 ```bash
-go get jaytaylor.com/html2text
+go get github.com/prodigeris/html2text
 ```
 
 ## Example usage
@@ -34,7 +35,7 @@ package main
 import (
 	"fmt"
 
-	"jaytaylor.com/html2text"
+	"github.com/prodigeris/html2text"
 )
 
 func main() {
@@ -134,10 +135,11 @@ You are more than welcome to open issues and send pull requests if you find a bu
 
 If you appreciate this library please feel free to drop me a line and tell me!  It's always nice to hear from people who have benefitted from my work.
 
-Email: jay at (my github username).com
+Email: iam at arn dot as
 
-Twitter: [@jtaylor](https://twitter.com/jtaylor)
+Twitter: [@prodigers](https://twitter.com/prodigers)
 
 # Alternatives
 
+https://github.com/jaytaylor/html2text - Original
 https://github.com/k3a/html2text - Lightweight

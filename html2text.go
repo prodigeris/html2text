@@ -8,6 +8,7 @@ import (
 	"unicode"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/tw"
 	"github.com/ssor/bom"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -30,15 +31,15 @@ type PrettyTablesOptions struct {
 	ColumnSeparator      string
 	RowSeparator         string
 	CenterSeparator      string
-	HeaderAlignment      int
-	FooterAlignment      int
-	Alignment            int
-	ColumnAlignment      []int
+	HeaderAlignment      tw.Align
+	FooterAlignment      tw.Align
+	Alignment            tw.Align
+	ColumnAlignment      []tw.Align
 	NewLine              string
 	HeaderLine           bool
 	RowLine              bool
 	AutoMergeCells       bool
-	Borders              tablewriter.Border
+	Borders              tw.Border
 }
 
 // NewPrettyTablesOptions creates PrettyTablesOptions with default settings
@@ -47,19 +48,19 @@ func NewPrettyTablesOptions() *PrettyTablesOptions {
 		AutoFormatHeader:     true,
 		AutoWrapText:         true,
 		ReflowDuringAutoWrap: true,
-		ColWidth:             tablewriter.MAX_ROW_WIDTH,
-		ColumnSeparator:      tablewriter.COLUMN,
-		RowSeparator:         tablewriter.ROW,
-		CenterSeparator:      tablewriter.CENTER,
-		HeaderAlignment:      tablewriter.ALIGN_DEFAULT,
-		FooterAlignment:      tablewriter.ALIGN_DEFAULT,
-		Alignment:            tablewriter.ALIGN_DEFAULT,
-		ColumnAlignment:      []int{},
-		NewLine:              tablewriter.NEWLINE,
+		ColWidth:             80, // Default max width
+		ColumnSeparator:      "│",
+		RowSeparator:         "─",
+		CenterSeparator:      "┼",
+		HeaderAlignment:      tw.AlignCenter,
+		FooterAlignment:      tw.AlignCenter,
+		Alignment:            tw.AlignLeft,
+		ColumnAlignment:      []tw.Align{},
+		NewLine:              "\n",
 		HeaderLine:           true,
 		RowLine:              false,
 		AutoMergeCells:       false,
-		Borders:              tablewriter.Border{Left: true, Right: true, Bottom: true, Top: true},
+		Borders:              tw.Border{Left: tw.On, Right: tw.On, Bottom: tw.On, Top: tw.On},
 	}
 }
 
@@ -332,29 +333,92 @@ func (ctx *textifyTraverseContext) handleTableElement(node *html.Node) error {
 		}
 
 		buf := &bytes.Buffer{}
-		table := tablewriter.NewWriter(buf)
+
+		// Create table with options
+		var opts []tablewriter.Option
 		if ctx.options.PrettyTablesOptions != nil {
 			options := ctx.options.PrettyTablesOptions
-			table.SetAutoFormatHeaders(options.AutoFormatHeader)
-			table.SetAutoWrapText(options.AutoWrapText)
-			table.SetReflowDuringAutoWrap(options.ReflowDuringAutoWrap)
-			table.SetColWidth(options.ColWidth)
-			table.SetColumnSeparator(options.ColumnSeparator)
-			table.SetRowSeparator(options.RowSeparator)
-			table.SetCenterSeparator(options.CenterSeparator)
-			table.SetHeaderAlignment(options.HeaderAlignment)
-			table.SetFooterAlignment(options.FooterAlignment)
-			table.SetAlignment(options.Alignment)
-			table.SetColumnAlignment(options.ColumnAlignment)
-			table.SetNewLine(options.NewLine)
-			table.SetHeaderLine(options.HeaderLine)
-			table.SetRowLine(options.RowLine)
-			table.SetAutoMergeCells(options.AutoMergeCells)
-			table.SetBorders(options.Borders)
+
+			// Create rendition with border settings and ASCII symbols
+			rendition := tw.Rendition{
+				Borders: options.Borders,
+				Symbols: tw.NewSymbols(tw.StyleASCII),
+			}
+			opts = append(opts, tablewriter.WithRendition(rendition))
+
+			// Add header alignment if specified
+			if options.HeaderAlignment != tw.AlignNone {
+				opts = append(opts, tablewriter.WithHeaderAlignment(options.HeaderAlignment))
+			}
+
+			// Add header auto-format if specified
+			if options.AutoFormatHeader {
+				opts = append(opts, tablewriter.WithHeaderAutoFormat(tw.On))
+			}
+
+			// Add footer alignment if specified
+			if options.FooterAlignment != tw.AlignNone {
+				footerAlignment := tw.CellAlignment{
+					Global: options.FooterAlignment,
+				}
+				opts = append(opts, tablewriter.WithFooterAlignmentConfig(footerAlignment))
+			}
+
+			// Add row alignment if specified
+			if options.Alignment != tw.AlignNone {
+				opts = append(opts, tablewriter.WithRowAlignment(options.Alignment))
+			}
+
+			// Add max width if specified
+			if options.ColWidth > 0 {
+				opts = append(opts, tablewriter.WithMaxWidth(options.ColWidth))
+			}
+		} else {
+			// Default to ASCII symbols even without custom options
+			rendition := tw.Rendition{
+				Borders: tw.Border{Left: tw.On, Right: tw.On, Bottom: tw.On, Top: tw.On},
+				Symbols: tw.NewSymbols(tw.StyleASCII),
+			}
+			opts = append(opts, tablewriter.WithRendition(rendition))
+
+			// Default to center alignment for headers and footers
+			opts = append(opts, tablewriter.WithHeaderAlignment(tw.AlignCenter))
+			opts = append(opts, tablewriter.WithHeaderAutoFormat(tw.On))
+			footerAlignment := tw.CellAlignment{
+				Global: tw.AlignCenter,
+			}
+			opts = append(opts, tablewriter.WithFooterAlignmentConfig(footerAlignment))
+			opts = append(opts, tablewriter.WithRowAlignment(tw.AlignLeft))
 		}
-		table.SetHeader(ctx.tableCtx.header)
-		table.SetFooter(ctx.tableCtx.footer)
-		table.AppendBulk(ctx.tableCtx.body)
+
+		table := tablewriter.NewTable(buf, opts...)
+
+		// Set header
+		if len(ctx.tableCtx.header) > 0 {
+			headerAny := make([]any, len(ctx.tableCtx.header))
+			for i, h := range ctx.tableCtx.header {
+				headerAny[i] = h
+			}
+			table.Header(headerAny...)
+		}
+
+		// Set footer
+		if len(ctx.tableCtx.footer) > 0 {
+			footerAny := make([]any, len(ctx.tableCtx.footer))
+			for i, f := range ctx.tableCtx.footer {
+				footerAny[i] = strings.ToUpper(f)
+			}
+			table.Footer(footerAny...)
+		}
+
+		// Add body rows
+		for _, row := range ctx.tableCtx.body {
+			rowAny := make([]any, len(row))
+			for i, cell := range row {
+				rowAny[i] = cell
+			}
+			table.Append(rowAny...)
+		}
 
 		// Render the table using ASCII.
 		table.Render()

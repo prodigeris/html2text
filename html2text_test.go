@@ -317,17 +317,18 @@ Table 2 Header 1 Table 2 Header 2 Table 2 Footer 1 Table 2 Footer 2 Table 2 Row 
 					<td>$1.99</td>
 				</tr>
 			</table>`,
-			`+--------+--------------------------------+--------+
-|  ITEM  |          DESCRIPTION           | PRICE  |
-+--------+--------------------------------+--------+
-| Golang | Open source programming        | $10.99 |
-|        | language that makes it easy    |        |
-|        | to build simple, reliable, and |        |
-|        | efficient software             |        |
-| Hermes | Programmatically create        | $1.99  |
-|        | beautiful e-mails using        |        |
-|        | Golang.                        |        |
-+--------+--------------------------------+--------+`,
+			`+--------+-------------------------+--------+
+|  ITEM  |       DESCRIPTION       | PRICE  |
++--------+-------------------------+--------+
+| Golang | Open source programming | $10.99 |
+|        | language that makes it  |        |
+|        | easy to build simple,   |        |
+|        | reliable, and efficient |        |
+|        | software                |        |
+| Hermes | Programmatically create | $1.99  |
+|        | beautiful e-mails using |        |
+|        | Golang.                 |        |
++--------+-------------------------+--------+`,
 			"Item Description Price Golang Open source programming language that makes it easy to build simple, reliable, and efficient software $10.99 Hermes Programmatically create beautiful e-mails using Golang. $1.99",
 		},
 	}
